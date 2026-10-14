@@ -1,0 +1,13 @@
+.aider*
+node_modules
+# Environment secrets
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Generated build files
+backend/dist/
+.env
+.env.*
+!.env.example
+node_modules/

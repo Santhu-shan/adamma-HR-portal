@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  database:
+    image: mongo:6.0-jammy
+    container_name: adamma-db
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=adamma-hrms
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - adamma-network
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: adamma-cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - adamma-network
+
+  api-server:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: adamma-api
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - MONGO_URI=mongodb://database:27017/adamma-hrms
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=b64c7e2a938c41d1bf93a9d9f52fbe2d2a93c7849e830df2ee091e9a2b53d100
+      - NODE_ENV=development
+    depends_on:
+      - database
+      - redis
+    networks:
+      - adamma-network
+
+  client-app:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: adamma-web
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-server
+    networks:
+      - adamma-network
+
+networks:
+  adamma-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local
+  redis-data:
+    driver: local
